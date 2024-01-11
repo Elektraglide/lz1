@@ -1,15 +1,23 @@
-#include <stdlib.h>
 #include <stdio.h>
-#include <stdint.h>
-#include <math.h>
 
-uint32_t lz77_compress (uint8_t *uncompressed_text, uint32_t uncompressed_size, uint8_t *compressed_text, uint8_t pointer_length_width)
+#define uint32_t unsigned int
+#define uint16_t unsigned short
+#define uint8_t unsigned char
+#define size_t int
+
+extern unsigned char *malloc(int);
+
+uint32_t lz77_compress (uncompressed_text,  uncompressed_size, compressed_text, pointer_length_width)
+uint8_t *uncompressed_text;
+uint32_t uncompressed_size;
+uint8_t *compressed_text;
+uint8_t pointer_length_width;
 {
     uint16_t pointer_pos, temp_pointer_pos, output_pointer, pointer_length, temp_pointer_length;
     uint32_t compressed_pointer, output_size, coding_pos, output_lookahead_ref, look_behind, look_ahead;
     uint16_t pointer_pos_max, pointer_length_max;
-    pointer_pos_max = pow(2, 16 - pointer_length_width);
-    pointer_length_max = pow(2, pointer_length_width);
+    pointer_pos_max = 1 << (16 - pointer_length_width);
+    pointer_length_max = 1 << pointer_length_width;
 
     *((uint32_t *) compressed_text) = uncompressed_size;
     *(compressed_text + 4) = pointer_length_width;
@@ -54,7 +62,9 @@ uint32_t lz77_compress (uint8_t *uncompressed_text, uint32_t uncompressed_size, 
     return output_size;
 }
 
-uint32_t lz77_decompress (uint8_t *compressed_text, uint8_t *uncompressed_text)
+uint32_t lz77_decompress (compressed_text, uncompressed_text)
+uint8_t *compressed_text;
+uint8_t *uncompressed_text;
 {
     uint8_t pointer_length_width;
     uint16_t input_pointer, pointer_length, pointer_pos, pointer_length_mask;
@@ -64,7 +74,7 @@ uint32_t lz77_decompress (uint8_t *compressed_text, uint8_t *uncompressed_text)
     pointer_length_width = *(compressed_text + 4);
     compressed_pointer = 5;
 
-    pointer_length_mask = pow(2, pointer_length_width) - 1;
+    pointer_length_mask = (1 << pointer_length_width) - 1;
 
     for(coding_pos = 0; coding_pos < uncompressed_size; ++coding_pos)
     {
@@ -91,7 +101,11 @@ long fsize (FILE *in)
     return length;
 }
 
-uint32_t file_lz77_compress (char *filename_in, char *filename_out, size_t malloc_size, uint8_t pointer_length_width)
+uint32_t file_lz77_compress (filename_in, filename_out, malloc_size, pointer_length_width)
+char *filename_in;
+char *filename_out;
+size_t malloc_size;
+uint8_t pointer_length_width;
 {
     FILE *in, *out;
     uint8_t *uncompressed_text, *compressed_text;
@@ -120,7 +134,9 @@ uint32_t file_lz77_compress (char *filename_in, char *filename_out, size_t mallo
     return compressed_size;
 }
 
-uint32_t file_lz77_decompress (char *filename_in, char *filename_out)
+uint32_t file_lz77_decompress (filename_in, filename_out)
+char *filename_in;
+char *filename_out;
 {
     FILE *in, *out;
     uint32_t compressed_size, uncompressed_size;
@@ -151,15 +167,19 @@ uint32_t file_lz77_decompress (char *filename_in, char *filename_out)
     return uncompressed_size;
 }
 
-int main (int argc, char const *argv[])
+int main (argc, argv)
+int argc;
+char **argv;
 {
     FILE *in;
+    int i;
+
     in = fopen("./lz.c", "r");
     if(in == NULL)
         return 0;
     printf("Original size: %ld\n", fsize(in));
     fclose(in);
-    for(uint8_t i = 1; i < 16; ++i)
+    for( i = 1; i < 16; ++i)
         printf("Compressed (%i): %u, decompressed: (%u)\n", i, file_lz77_compress("./lz.c", "lz.c.z77", 10000000, i), file_lz77_decompress("./lz.c.z77", "lz-2.c"));
     return 0;
 }
