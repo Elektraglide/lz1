@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #define uint32_t unsigned int
 #define uint16_t unsigned short
@@ -172,8 +173,11 @@ int argc;
 char **argv;
 {
     FILE *in;
-    int i;
-
+    int i,len;
+    char *ext;
+    char output[256];
+    
+#ifdef TEST
     in = fopen("./lz.c", "r");
     if(in == NULL)
         return 0;
@@ -181,5 +185,35 @@ char **argv;
     fclose(in);
     for( i = 1; i < 16; ++i)
         printf("Compressed (%i): %u, decompressed: (%u)\n", i, file_lz77_compress("./lz.c", "lz.c.z77", 10000000, i), file_lz77_decompress("./lz.c.z77", "lz-2.c"));
-    return 0;
+#endif
+
+  for (i=1; i<argc; i++)
+  {
+    if (argv[i])
+    {
+      in = fopen(argv[i], "r");
+      if (in == NULL)
+        continue;
+        
+      len = fsize(in);
+      fclose(in);
+      
+      strcpy(output, argv[i]);
+      ext = strstr(output, ".z77");
+      if (ext)
+      {
+        len *= 4;
+        *ext = '\0';
+
+        file_lz77_decompress(argv[i], output);
+      }
+      else
+      {
+        strcat(output, ".z77");
+        file_lz77_compress(argv[i], output, len + 256, 4);
+      }
+    }
+  }
+  
+  return 0;
 }
