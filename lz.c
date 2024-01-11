@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include <string.h>
 
+#define SEEK_SET 0
+#define SEEK_END 2
+
 #define uint32_t unsigned int
 #define uint16_t unsigned short
 #define uint8_t unsigned char
 #define size_t int
 
-extern unsigned char *malloc(int);
+extern unsigned char *malloc();
 
 uint32_t lz77_compress (uncompressed_text,  uncompressed_size, compressed_text, pointer_length_width)
 uint8_t *uncompressed_text;
@@ -92,7 +95,8 @@ uint8_t *uncompressed_text;
     return coding_pos;
 }
 
-long fsize (FILE *in)
+long fsize (in)
+FILE *in;
 {
     long pos, length;
     pos = ftell(in);
